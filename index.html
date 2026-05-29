@@ -1,0 +1,783 @@
+<!DOCTYPE html>
+<html lang="no">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>💩 Shit Calculator</title>
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Sans:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #1a1208;
+    --bg2: #241a0e;
+    --card: #2e2010;
+    --gold: #f5c842;
+    --gold2: #e8a800;
+    --brown: #8B5E3C;
+    --brown-light: #c4895a;
+    --green: #4caf7d;
+    --red: #e05252;
+    --text: #f0e6d3;
+    --muted: #9e8a74;
+    --radius: 20px;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    font-family: 'DM Sans', sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 0 0 3rem;
+    position: relative;
+    overflow-x: hidden;
+  }
+
+  /* Subtle paper texture overlay */
+  body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='4' height='4'%3E%3Crect width='4' height='4' fill='none'/%3E%3Ccircle cx='1' cy='1' r='0.5' fill='%23ffffff08'/%3E%3C/svg%3E");
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  .wrap { width: 100%; max-width: 420px; padding: 0 1.2rem; position: relative; z-index: 1; }
+
+  /* HEADER */
+  .header {
+    width: 100%;
+    text-align: center;
+    padding: 2.5rem 1rem 1.5rem;
+    position: relative;
+    z-index: 1;
+  }
+  .header-emoji {
+    font-size: 4.5rem;
+    display: block;
+    animation: wobble 3s ease-in-out infinite;
+    filter: drop-shadow(0 6px 18px rgba(139,94,60,0.5));
+    margin-bottom: 0.4rem;
+  }
+  @keyframes wobble {
+    0%,100% { transform: rotate(-4deg) scale(1); }
+    50% { transform: rotate(4deg) scale(1.06); }
+  }
+  .header h1 {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 3.2rem;
+    letter-spacing: 3px;
+    color: var(--gold);
+    text-shadow: 0 3px 12px rgba(245,200,66,0.3);
+    line-height: 1;
+  }
+  .header-sub {
+    font-size: 0.85rem;
+    color: var(--muted);
+    margin-top: 0.35rem;
+    letter-spacing: 0.5px;
+  }
+
+  /* SALARY SETUP CARD */
+  .card {
+    background: var(--card);
+    border-radius: var(--radius);
+    border: 1px solid rgba(245,200,66,0.12);
+    padding: 1.4rem 1.4rem;
+    margin-bottom: 1rem;
+  }
+  .card-title {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 1.15rem;
+    letter-spacing: 2px;
+    color: var(--gold);
+    margin-bottom: 1rem;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+  }
+
+  .input-row {
+    display: flex;
+    gap: 0.6rem;
+    align-items: stretch;
+  }
+  .salary-input {
+    flex: 1;
+    background: var(--bg2);
+    border: 1.5px solid rgba(245,200,66,0.2);
+    border-radius: 12px;
+    padding: 0.75rem 1rem;
+    font-family: 'DM Sans', sans-serif;
+    font-size: 1.1rem;
+    font-weight: 700;
+    color: var(--text);
+    outline: none;
+    transition: border-color 0.2s;
+    width: 100%;
+  }
+  .salary-input:focus { border-color: var(--gold); }
+  .salary-input::placeholder { color: var(--muted); font-weight: 400; }
+
+  .period-select {
+    background: var(--bg2);
+    border: 1.5px solid rgba(245,200,66,0.2);
+    border-radius: 12px;
+    padding: 0.75rem 0.8rem;
+    font-family: 'DM Sans', sans-serif;
+    font-size: 0.9rem;
+    color: var(--text);
+    outline: none;
+    cursor: pointer;
+    transition: border-color 0.2s;
+  }
+  .period-select:focus { border-color: var(--gold); }
+  .period-select option { background: #2e2010; }
+
+  .per-second {
+    margin-top: 0.75rem;
+    font-size: 0.82rem;
+    color: var(--muted);
+    text-align: center;
+  }
+  .per-second span { color: var(--gold); font-weight: 700; }
+
+  /* TIMER CARD */
+  .timer-card {
+    background: var(--card);
+    border-radius: var(--radius);
+    border: 1px solid rgba(245,200,66,0.12);
+    padding: 1.8rem 1.4rem 1.4rem;
+    margin-bottom: 1rem;
+    text-align: center;
+    position: relative;
+    overflow: hidden;
+  }
+  .timer-card::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: radial-gradient(ellipse at 50% 120%, rgba(245,200,66,0.06) 0%, transparent 70%);
+    pointer-events: none;
+  }
+
+  .timer-display {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 5.5rem;
+    letter-spacing: 4px;
+    color: var(--text);
+    line-height: 1;
+    margin-bottom: 0.3rem;
+    transition: color 0.3s;
+  }
+  .timer-display.running { color: var(--gold); }
+  .timer-label {
+    font-size: 0.75rem;
+    color: var(--muted);
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    margin-bottom: 1.6rem;
+  }
+
+  .earned-big {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 3.8rem;
+    letter-spacing: 2px;
+    color: var(--green);
+    line-height: 1;
+    transition: all 0.2s;
+  }
+  .earned-label {
+    font-size: 0.78rem;
+    color: var(--muted);
+    letter-spacing: 1.5px;
+    margin-top: 0.2rem;
+    margin-bottom: 1.6rem;
+  }
+
+  /* BIG BUTTON */
+  .start-btn {
+    width: 100%;
+    border: none;
+    border-radius: 14px;
+    padding: 1.1rem;
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 1.6rem;
+    letter-spacing: 3px;
+    cursor: pointer;
+    transition: transform 0.15s, box-shadow 0.15s;
+    position: relative;
+    overflow: hidden;
+  }
+  .start-btn.idle {
+    background: var(--gold);
+    color: var(--bg);
+    box-shadow: 0 4px 24px rgba(245,200,66,0.3);
+  }
+  .start-btn.active {
+    background: var(--red);
+    color: white;
+    box-shadow: 0 4px 24px rgba(224,82,82,0.35);
+    animation: pulse-btn 1.5s ease-in-out infinite;
+  }
+  @keyframes pulse-btn {
+    0%,100% { box-shadow: 0 4px 24px rgba(224,82,82,0.35); }
+    50% { box-shadow: 0 4px 36px rgba(224,82,82,0.55); }
+  }
+  .start-btn:hover { transform: scale(1.02); }
+  .start-btn:active { transform: scale(0.98); }
+
+  /* STATS CARD */
+  .stats-card {
+    background: var(--card);
+    border-radius: var(--radius);
+    border: 1px solid rgba(245,200,66,0.12);
+    padding: 1.4rem;
+    margin-bottom: 1rem;
+  }
+  .stats-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 0.75rem;
+  }
+  .stat-box {
+    background: var(--bg2);
+    border-radius: 12px;
+    padding: 0.9rem;
+    text-align: center;
+  }
+  .stat-value {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 1.7rem;
+    letter-spacing: 1px;
+    color: var(--gold);
+    line-height: 1;
+  }
+  .stat-label {
+    font-size: 0.72rem;
+    color: var(--muted);
+    margin-top: 4px;
+    letter-spacing: 0.5px;
+  }
+
+  /* HISTORY */
+  .history-list { margin-top: 0.75rem; }
+  .history-item {
+    display: flex;
+    align-items: center;
+    gap: 0.7rem;
+    padding: 0.65rem 0;
+    border-bottom: 1px solid rgba(255,255,255,0.05);
+    font-size: 0.85rem;
+  }
+  .history-item:last-child { border-bottom: none; }
+  .history-emoji { font-size: 1.1rem; }
+  .history-info { flex: 1; }
+  .history-duration { color: var(--muted); font-size: 0.75rem; }
+  .history-earned { font-weight: 700; color: var(--green); font-size: 0.9rem; }
+
+  /* CELEBRITY COMPARE */
+  .celeb-card {
+    background: var(--card);
+    border-radius: var(--radius);
+    border: 1px solid rgba(245,200,66,0.12);
+    padding: 1.4rem;
+    margin-bottom: 1rem;
+  }
+  .celeb-item {
+    padding: 0.75rem 0;
+    border-bottom: 1px solid rgba(255,255,255,0.05);
+  }
+  .celeb-item:last-child { border-bottom: none; }
+  .celeb-top {
+    display: flex;
+    align-items: center;
+    gap: 0.6rem;
+    margin-bottom: 0.5rem;
+  }
+  .celeb-name { flex: 1; font-size: 0.9rem; font-weight: 600; }
+  .celeb-verdict {
+    font-size: 0.72rem;
+    font-weight: 700;
+    padding: 2px 8px;
+    border-radius: 50px;
+    letter-spacing: 0.5px;
+  }
+  .celeb-verdict.more { background: rgba(224,82,82,0.2); color: var(--red); }
+  .celeb-verdict.less { background: rgba(76,175,125,0.2); color: var(--green); }
+  .celeb-bars {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 0.5rem;
+  }
+  .celeb-bar-box {
+    background: var(--bg2);
+    border-radius: 10px;
+    padding: 0.55rem 0.7rem;
+  }
+  .celeb-bar-label {
+    font-size: 0.68rem;
+    color: var(--muted);
+    margin-bottom: 2px;
+    letter-spacing: 0.5px;
+  }
+  .celeb-bar-value {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 1.05rem;
+    letter-spacing: 1px;
+    line-height: 1.1;
+  }
+  .celeb-bar-value.them { color: var(--red); }
+  .celeb-bar-value.me { color: var(--green); }
+
+  /* FLASH EFFECT */
+  .flash {
+    position: fixed;
+    inset: 0;
+    background: rgba(245,200,66,0.12);
+    pointer-events: none;
+    z-index: 999;
+    opacity: 0;
+    transition: opacity 0.1s;
+  }
+  .flash.show { opacity: 1; }
+
+  /* RECORD BADGE */
+  .record-badge {
+    display: inline-block;
+    background: var(--gold);
+    color: var(--bg);
+    font-size: 0.7rem;
+    font-weight: 700;
+    padding: 2px 8px;
+    border-radius: 50px;
+    letter-spacing: 1px;
+    margin-left: 6px;
+    vertical-align: middle;
+    animation: pop 0.4s cubic-bezier(0.34,1.56,0.64,1);
+  }
+  @keyframes pop { from { transform: scale(0); } to { transform: scale(1); } }
+
+  .empty-history {
+    text-align: center;
+    color: var(--muted);
+    font-size: 0.85rem;
+    padding: 1rem 0;
+  }
+
+  .share-btn {
+    width: 100%;
+    border: 1.5px solid rgba(245,200,66,0.3);
+    border-radius: 14px;
+    padding: 0.85rem;
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 1.2rem;
+    letter-spacing: 2px;
+    cursor: pointer;
+    background: transparent;
+    color: var(--gold);
+    transition: background 0.2s, transform 0.15s;
+    margin-top: 0.5rem;
+  }
+  .share-btn:hover { background: rgba(245,200,66,0.08); transform: scale(1.01); }
+
+  /* OVERTIME BUTTON */
+  .overtime-btn {
+    width: 100%;
+    border: none;
+    border-radius: 14px;
+    padding: 0.85rem;
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 1.25rem;
+    letter-spacing: 2px;
+    cursor: pointer;
+    margin-top: 0.75rem;
+    transition: transform 0.15s, box-shadow 0.2s;
+    background: linear-gradient(135deg, #2a1f00, #3d2e00);
+    color: var(--muted);
+    border: 1.5px solid rgba(245,200,66,0.15);
+  }
+  .overtime-btn.on {
+    background: linear-gradient(135deg, #7a4f00, #c47f00);
+    color: #fff;
+    border-color: transparent;
+    box-shadow: 0 4px 20px rgba(196,127,0,0.45);
+    animation: overtime-glow 1.8s ease-in-out infinite;
+  }
+  @keyframes overtime-glow {
+    0%,100% { box-shadow: 0 4px 20px rgba(196,127,0,0.4); }
+    50%      { box-shadow: 0 4px 32px rgba(196,127,0,0.7); }
+  }
+  .overtime-btn:hover { transform: scale(1.02); }
+  .overtime-badge {
+    display: inline-block;
+    background: var(--gold);
+    color: var(--bg);
+    font-size: 0.68rem;
+    font-weight: 700;
+    padding: 2px 7px;
+    border-radius: 50px;
+    letter-spacing: 1px;
+    margin-left: 6px;
+    vertical-align: middle;
+    animation: pop 0.4s cubic-bezier(0.34,1.56,0.64,1);
+  }
+
+  /* Floating poop particles when done */
+  .poop-particle {
+    position: fixed;
+    font-size: 1.5rem;
+    pointer-events: none;
+    z-index: 998;
+    animation: fall-up 1.8s ease-out forwards;
+  }
+  @keyframes fall-up {
+    0%   { transform: translateY(0) rotate(0deg); opacity: 1; }
+    100% { transform: translateY(-280px) rotate(360deg); opacity: 0; }
+  }
+</style>
+</head>
+<body>
+
+<div class="flash" id="flash"></div>
+
+<div class="header">
+  <span class="header-emoji">💩</span>
+  <h1>Shit Calculator</h1>
+  <p class="header-sub">Tid på do = penger i lomma</p>
+</div>
+
+<div class="wrap">
+
+  <!-- SALARY INPUT -->
+  <div class="card">
+    <div class="card-title">💰 Din lønn</div>
+    <div class="input-row">
+      <input class="salary-input" type="number" id="salaryInput" placeholder="50 000" min="0" oninput="updateRate()">
+      <select class="period-select" id="periodSelect" onchange="updateRate()">
+        <option value="year">per år</option>
+        <option value="month" selected>per mnd</option>
+        <option value="hour">per time</option>
+      </select>
+    </div>
+    <div class="per-second" id="perSecondDisplay">Skriv inn lønnen din over 👆</div>
+    <button class="overtime-btn" id="overtimeBtn" onclick="toggleOvertime()">
+      ⏰ JEG JOBBER OVERTID
+    </button>
+  </div>
+
+  <!-- TIMER -->
+  <div class="timer-card">
+    <div class="timer-display" id="timerDisplay">00:00</div>
+    <div class="timer-label">Tid på do</div>
+    <div class="earned-big" id="earnedDisplay">0,00 kr</div>
+    <div class="earned-label">OPPTJENT NETTOOPP</div>
+    <button class="start-btn idle" id="startBtn" onclick="toggleTimer()">
+      🚽 SIT DOWN
+    </button>
+  </div>
+
+  <!-- STATS -->
+  <div class="stats-card">
+    <div class="card-title">📊 Din do-statistikk</div>
+    <div class="stats-grid">
+      <div class="stat-box">
+        <div class="stat-value" id="statTotal">0,00 kr</div>
+        <div class="stat-label">Totalt opptjent</div>
+      </div>
+      <div class="stat-box">
+        <div class="stat-value" id="statSessions">0</div>
+        <div class="stat-label">Do-besøk</div>
+      </div>
+      <div class="stat-box">
+        <div class="stat-value" id="statAvg">0:00</div>
+        <div class="stat-label">Snitt-tid</div>
+      </div>
+      <div class="stat-box">
+        <div class="stat-value" id="statRecord">0:00</div>
+        <div class="stat-label">Rekord 🏆</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- CELEBRITY COMPARE -->
+  <div class="celeb-card" id="celebCard" style="display:none">
+    <div class="card-title">🌟 Sammenlign med kjendiser</div>
+    <div id="celebList"></div>
+  </div>
+
+  <!-- HISTORY -->
+  <div class="card">
+    <div class="card-title">🧻 Historikk</div>
+    <div class="history-list" id="historyList">
+      <div class="empty-history">Ingen besøk enda.<br>Trykk på knappen og gjør jobben! 💩</div>
+    </div>
+    <button class="share-btn" id="shareBtn" onclick="shareResult()" style="display:none">
+      📤 DEL RESULTATET
+    </button>
+  </div>
+
+</div>
+
+<script>
+  // ============ STATE ============
+  let perSecond = 0;
+  let basePerSecond = 0;
+  let overtime = false;
+  let timerInterval = null;
+  let seconds = 0;
+  let isRunning = false;
+  let sessions = [];
+  let record = 0;
+
+  // Celebrity hourly rates (NOK approximate)
+  const CELEBS = [
+    { name: 'Elon Musk', hourly: 14000000, emoji: '🚀' },
+    { name: 'Taylor Swift', hourly: 180000, emoji: '🎤' },
+    { name: 'Cristiano Ronaldo', hourly: 95000, emoji: '⚽' },
+    { name: 'Jensen Ackles', hourly: 45000, emoji: '🎬' },
+  ];
+
+  // ============ LOAD SAVED DATA ============
+  function loadData() {
+    try {
+      const saved = localStorage.getItem('shitCalc');
+      if (saved) {
+        const d = JSON.parse(saved);
+        sessions = d.sessions || [];
+        record = d.record || 0;
+        if (d.salary) document.getElementById('salaryInput').value = d.salary;
+        if (d.period) document.getElementById('periodSelect').value = d.period;
+        updateRate();
+        updateStats();
+        renderHistory();
+      }
+    } catch(e) {}
+  }
+
+  function saveData() {
+    try {
+      localStorage.setItem('shitCalc', JSON.stringify({
+        sessions, record,
+        salary: document.getElementById('salaryInput').value,
+        period: document.getElementById('periodSelect').value
+      }));
+    } catch(e) {}
+  }
+
+  // ============ RATE CALC ============
+  function updateRate() {
+    const val = parseFloat(document.getElementById('salaryInput').value) || 0;
+    const period = document.getElementById('periodSelect').value;
+    let annual = 0;
+    if (period === 'year')  annual = val;
+    if (period === 'month') annual = val * 12;
+    if (period === 'hour')  annual = val * 1750;
+    basePerSecond = annual / (1750 * 3600);
+    perSecond = basePerSecond * (overtime ? 2 : 1);
+    const display = document.getElementById('perSecondDisplay');
+    if (val > 0) {
+      display.innerHTML = `Du tjener <span>${formatKr(perSecond)}</span> per sekund på do${overtime ? ' <span style="color:var(--gold)">× 2 OVERTID! 🔥</span>' : ''}`;
+    } else {
+      display.textContent = 'Skriv inn lønnen din over 👆';
+    }
+    updateCelebs();
+    saveData();
+  }
+
+  function toggleOvertime() {
+    overtime = !overtime;
+    perSecond = basePerSecond * (overtime ? 2 : 1);
+    const btn = document.getElementById('overtimeBtn');
+    if (overtime) {
+      btn.className = 'overtime-btn on';
+      btn.innerHTML = '🔥 OVERTID PÅ! <span class="overtime-badge">× 2</span>';
+    } else {
+      btn.className = 'overtime-btn';
+      btn.innerHTML = '⏰ JEG JOBBER OVERTID';
+    }
+    updateRate();
+  }
+
+  // ============ TIMER ============
+  function toggleTimer() {
+    if (!isRunning) startTimer();
+    else stopTimer();
+  }
+
+  function startTimer() {
+    if (perSecond <= 0) {
+      alert('Skriv inn lønnen din først! 💰');
+      return;
+    }
+    isRunning = true;
+    seconds = 0;
+    const btn = document.getElementById('startBtn');
+    btn.className = 'start-btn active';
+    btn.textContent = '🚽 DONE — STAND UP!';
+    document.getElementById('timerDisplay').classList.add('running');
+    timerInterval = setInterval(() => {
+      seconds++;
+      updateTimerDisplay();
+    }, 1000);
+  }
+
+  function stopTimer() {
+    clearInterval(timerInterval);
+    isRunning = false;
+    const earned = perSecond * seconds;
+    const btn = document.getElementById('startBtn');
+    btn.className = 'start-btn idle';
+    btn.textContent = '🚽 SIT DOWN';
+    document.getElementById('timerDisplay').classList.remove('running');
+
+    // Save session
+    const isRecord = seconds > record;
+    if (isRecord) record = seconds;
+    sessions.unshift({ seconds, earned, time: new Date().toLocaleTimeString('no', {hour:'2-digit',minute:'2-digit'}), isRecord });
+    if (sessions.length > 20) sessions.pop();
+
+    flashScreen();
+    spawnPoops();
+    saveData();
+    updateStats();
+    renderHistory();
+    updateCelebs();
+
+    // Reset display
+    setTimeout(() => {
+      seconds = 0;
+      updateTimerDisplay();
+    }, 2000);
+  }
+
+  function updateTimerDisplay() {
+    const m = Math.floor(seconds / 60).toString().padStart(2, '0');
+    const s = (seconds % 60).toString().padStart(2, '0');
+    document.getElementById('timerDisplay').textContent = `${m}:${s}`;
+    document.getElementById('earnedDisplay').textContent = formatKr(perSecond * seconds);
+  }
+
+  // ============ STATS ============
+  function updateStats() {
+    const total = sessions.reduce((a, s) => a + s.earned, 0);
+    const avgSec = sessions.length ? sessions.reduce((a, s) => a + s.seconds, 0) / sessions.length : 0;
+    document.getElementById('statTotal').textContent = formatKr(total);
+    document.getElementById('statSessions').textContent = sessions.length;
+    document.getElementById('statAvg').textContent = formatTime(avgSec);
+    document.getElementById('statRecord').textContent = formatTime(record);
+    document.getElementById('shareBtn').style.display = sessions.length ? 'block' : 'none';
+  }
+
+  // ============ HISTORY ============
+  function renderHistory() {
+    const el = document.getElementById('historyList');
+    if (!sessions.length) {
+      el.innerHTML = '<div class="empty-history">Ingen besøk enda.<br>Trykk på knappen og gjør jobben! 💩</div>';
+      return;
+    }
+    el.innerHTML = sessions.slice(0, 8).map((s, i) => `
+      <div class="history-item">
+        <span class="history-emoji">💩</span>
+        <div class="history-info">
+          <div style="font-size:0.85rem">${s.time}
+            ${s.isRecord ? '<span class="record-badge">REKORD 🏆</span>' : ''}
+          </div>
+          <div class="history-duration">${formatTime(s.seconds)} på do</div>
+        </div>
+        <div class="history-earned">+${formatKr(s.earned)}</div>
+      </div>
+    `).join('');
+  }
+
+  // ============ CELEBRITY COMPARE ============
+  function updateCelebs() {
+    if (perSecond <= 0) {
+      document.getElementById('celebCard').style.display = 'none';
+      return;
+    }
+    document.getElementById('celebCard').style.display = 'block';
+    const myHourly = perSecond * 3600;
+    const avgSessionSec = sessions.length
+      ? sessions.reduce((a, s) => a + s.seconds, 0) / sessions.length
+      : 300; // default 5 min
+    const myEarned = perSecond * avgSessionSec;
+    const list = CELEBS.map(c => {
+      const cEarned = (c.hourly / 3600) * avgSessionSec;
+      const isMore = cEarned > myEarned;
+      return `<div class="celeb-item">
+        <div class="celeb-top">
+          <span style="font-size:1.2rem">${c.emoji}</span>
+          <div class="celeb-name">${c.name}</div>
+          <span class="celeb-verdict ${isMore ? 'more' : 'less'}">${isMore ? '😭 Tapte' : '🎉 Vant'}</span>
+        </div>
+        <div class="celeb-bars">
+          <div class="celeb-bar-box">
+            <div class="celeb-bar-label">${c.name.split(' ')[0]} tjente</div>
+            <div class="celeb-bar-value them">${formatKr(cEarned)}</div>
+          </div>
+          <div class="celeb-bar-box">
+            <div class="celeb-bar-label">Du tjente</div>
+            <div class="celeb-bar-value me">${formatKr(myEarned)}</div>
+          </div>
+        </div>
+      </div>`;
+    });
+    document.getElementById('celebList').innerHTML = list.join('');
+  }
+
+  // ============ EFFECTS ============
+  function flashScreen() {
+    const f = document.getElementById('flash');
+    f.classList.add('show');
+    setTimeout(() => f.classList.remove('show'), 200);
+  }
+
+  function spawnPoops() {
+    for (let i = 0; i < 8; i++) {
+      setTimeout(() => {
+        const p = document.createElement('div');
+        p.className = 'poop-particle';
+        p.textContent = '💩';
+        p.style.left = Math.random() * 80 + 10 + '%';
+        p.style.bottom = '80px';
+        p.style.animationDelay = Math.random() * 0.4 + 's';
+        p.style.fontSize = (1 + Math.random()) + 'rem';
+        document.body.appendChild(p);
+        setTimeout(() => p.remove(), 2200);
+      }, i * 80);
+    }
+  }
+
+  // ============ SHARE ============
+  function shareResult() {
+    const total = sessions.reduce((a, s) => a + s.earned, 0);
+    const txt = `💩 Shit Calculator\nJeg har tjent ${formatKr(total)} på do!\nRekord: ${formatTime(record)}\nDitt do-regnskap: [link]`;
+    if (navigator.share) {
+      navigator.share({ title: 'Shit Calculator', text: txt });
+    } else {
+      navigator.clipboard.writeText(txt).then(() => alert('Kopiert til utklippstavlen! 📋'));
+    }
+  }
+
+  // ============ FORMATTERS ============
+  function formatKr(amount) {
+    if (amount < 0.01) return '0,00 kr';
+    return amount.toLocaleString('no-NO', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + ' kr';
+  }
+
+  function formatTime(s) {
+    const m = Math.floor(s / 60);
+    const sec = Math.floor(s % 60);
+    return `${m}:${sec.toString().padStart(2,'0')}`;
+  }
+
+  // INIT
+  loadData();
+</script>
+</body>
+</html>
