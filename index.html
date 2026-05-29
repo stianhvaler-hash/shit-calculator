@@ -427,6 +427,100 @@
     animation: pop 0.4s cubic-bezier(0.34,1.56,0.64,1);
   }
 
+  /* YEARLY REPORT */
+  .year-card {
+    background: linear-gradient(135deg, #1e3a1e, #0d2b0d);
+    border-radius: var(--radius);
+    border: 1px solid rgba(76,175,125,0.25);
+    padding: 1.4rem;
+    margin-bottom: 1rem;
+  }
+  .year-title {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 1.15rem;
+    letter-spacing: 2px;
+    color: var(--green);
+    margin-bottom: 1rem;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+  }
+  .year-hero {
+    text-align: center;
+    margin-bottom: 1rem;
+    padding: 1rem;
+    background: rgba(76,175,125,0.1);
+    border-radius: 14px;
+  }
+  .year-hero-amount {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 3rem;
+    letter-spacing: 2px;
+    color: var(--green);
+    line-height: 1;
+  }
+  .year-hero-label {
+    font-size: 0.75rem;
+    color: var(--muted);
+    letter-spacing: 1.5px;
+    margin-top: 4px;
+  }
+  .year-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr;
+    gap: 0.5rem;
+    margin-bottom: 0.75rem;
+  }
+  .year-box {
+    background: rgba(0,0,0,0.2);
+    border-radius: 10px;
+    padding: 0.65rem 0.5rem;
+    text-align: center;
+  }
+  .year-box-val {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 1.2rem;
+    letter-spacing: 1px;
+    color: var(--gold);
+    line-height: 1;
+  }
+  .year-box-lbl {
+    font-size: 0.65rem;
+    color: var(--muted);
+    margin-top: 3px;
+  }
+  .year-progress-wrap {
+    margin-top: 0.75rem;
+  }
+  .year-progress-label {
+    display: flex;
+    justify-content: space-between;
+    font-size: 0.72rem;
+    color: var(--muted);
+    margin-bottom: 5px;
+  }
+  .year-bar-bg {
+    background: rgba(255,255,255,0.08);
+    border-radius: 50px;
+    height: 10px;
+    overflow: hidden;
+  }
+  .year-bar-fill {
+    height: 100%;
+    border-radius: 50px;
+    background: linear-gradient(90deg, var(--green), var(--gold));
+    transition: width 0.8s ease;
+  }
+  .year-fun-fact {
+    margin-top: 0.75rem;
+    background: rgba(245,200,66,0.08);
+    border-radius: 10px;
+    padding: 0.65rem 0.9rem;
+    font-size: 0.82rem;
+    color: var(--gold);
+    text-align: center;
+  }
+
   /* Floating poop particles when done */
   .poop-particle {
     position: fixed;
@@ -504,6 +598,40 @@
     </div>
   </div>
 
+  <!-- YEARLY REPORT -->
+  <div class="year-card" id="yearCard" style="display:none">
+    <div class="year-title">📅 Do-lønn <span id="yearLabel">2025</span></div>
+    <div class="year-hero">
+      <div class="year-hero-amount" id="yearTotal">0,00 kr</div>
+      <div class="year-hero-label">OPPTJENT PÅ DO SÅ LANGT I ÅR</div>
+    </div>
+    <div class="year-grid">
+      <div class="year-box">
+        <div class="year-box-val" id="yearSessions">0</div>
+        <div class="year-box-lbl">Do-besøk</div>
+      </div>
+      <div class="year-box">
+        <div class="year-box-val" id="yearTime">0:00</div>
+        <div class="year-box-lbl">Total tid</div>
+      </div>
+      <div class="year-box">
+        <div class="year-box-val" id="yearAvg">0,00 kr</div>
+        <div class="year-box-lbl">Snitt/besøk</div>
+      </div>
+    </div>
+    <div class="year-progress-wrap">
+      <div class="year-progress-label">
+        <span>1. jan</span>
+        <span id="yearProgressPct">0% av året brukt</span>
+        <span>31. des</span>
+      </div>
+      <div class="year-bar-bg">
+        <div class="year-bar-fill" id="yearBar" style="width:0%"></div>
+      </div>
+    </div>
+    <div class="year-fun-fact" id="yearFunFact"></div>
+  </div>
+
   <!-- CELEBRITY COMPARE -->
   <div class="celeb-card" id="celebCard" style="display:none">
     <div class="card-title">🌟 Sammenlign med kjendiser</div>
@@ -554,6 +682,7 @@
         if (d.period) document.getElementById('periodSelect').value = d.period;
         updateRate();
         updateStats();
+        updateYearReport();
         renderHistory();
       }
     } catch(e) {}
@@ -635,16 +764,17 @@
     btn.textContent = '🚽 SIT DOWN';
     document.getElementById('timerDisplay').classList.remove('running');
 
-    // Save session
+    // Save session with date
     const isRecord = seconds > record;
     if (isRecord) record = seconds;
-    sessions.unshift({ seconds, earned, time: new Date().toLocaleTimeString('no', {hour:'2-digit',minute:'2-digit'}), isRecord });
-    if (sessions.length > 20) sessions.pop();
+    sessions.unshift({ seconds, earned, time: new Date().toLocaleTimeString('no', {hour:'2-digit',minute:'2-digit'}), date: new Date().toISOString(), isRecord });
+    if (sessions.length > 200) sessions.pop();
 
     flashScreen();
     spawnPoops();
     saveData();
     updateStats();
+    updateYearReport();
     renderHistory();
     updateCelebs();
 
@@ -671,6 +801,51 @@
     document.getElementById('statAvg').textContent = formatTime(avgSec);
     document.getElementById('statRecord').textContent = formatTime(record);
     document.getElementById('shareBtn').style.display = sessions.length ? 'block' : 'none';
+  }
+
+  // ============ YEARLY REPORT ============
+  function updateYearReport() {
+    const now = new Date();
+    const year = now.getFullYear();
+    const yearSessions = sessions.filter(s => {
+      if (!s.date) return false;
+      return new Date(s.date).getFullYear() === year;
+    });
+
+    const card = document.getElementById('yearCard');
+    if (!yearSessions.length || perSecond <= 0) { card.style.display = 'none'; return; }
+    card.style.display = 'block';
+
+    const totalEarned = yearSessions.reduce((a,s) => a + s.earned, 0);
+    const totalSecs   = yearSessions.reduce((a,s) => a + s.seconds, 0);
+    const avgEarned   = totalEarned / yearSessions.length;
+
+    // Progress through the year
+    const startOfYear = new Date(year, 0, 1);
+    const endOfYear   = new Date(year + 1, 0, 1);
+    const pct = Math.round(((now - startOfYear) / (endOfYear - startOfYear)) * 100);
+
+    // Projected full year
+    const projected = (totalEarned / (pct / 100));
+
+    // Fun facts
+    const facts = [
+      `📈 Projisert do-lønn for hele ${year}: ${formatKr(projected)}`,
+      `☕ Det tilsvarer ${Math.round(totalEarned / 45)} kopper kaffe på kafe`,
+      `🍕 Du har tjent nok til ${Math.round(totalEarned / 180)} pizzaer`,
+      `⏱ Du har sittet på do i ${formatTime(totalSecs)} til sammen i år`,
+      `💸 Du tjener ${formatKr(totalEarned / Math.max(1, Math.floor((now - startOfYear) / 86400000)))} per dag på do i snitt`,
+    ];
+    const fact = facts[yearSessions.length % facts.length];
+
+    document.getElementById('yearLabel').textContent = year;
+    document.getElementById('yearTotal').textContent = formatKr(totalEarned);
+    document.getElementById('yearSessions').textContent = yearSessions.length;
+    document.getElementById('yearTime').textContent = formatTime(totalSecs);
+    document.getElementById('yearAvg').textContent = formatKr(avgEarned);
+    document.getElementById('yearBar').style.width = pct + '%';
+    document.getElementById('yearProgressPct').textContent = `${pct}% av året brukt`;
+    document.getElementById('yearFunFact').textContent = fact;
   }
 
   // ============ HISTORY ============
